@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "@/context/AuthContext";
 import Landing from "@/pages/Landing";
 import ToolkitDetail from "@/pages/ToolkitDetail";
 import Login from "@/pages/Login";
+import AuthCallback from "@/pages/AuthCallback";
 
 import ClientDashboard from "@/pages/client/Dashboard";
 import OrgProfile from "@/pages/client/OrgProfile";
@@ -47,6 +48,7 @@ function App() {
             <Route path="/" element={<Landing />} />
             <Route path="/toolkits/:slug" element={<ToolkitDetail />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
 
             {/* Client */}
             <Route path="/app" element={<Guard role="client"><ClientDashboard /></Guard>} />

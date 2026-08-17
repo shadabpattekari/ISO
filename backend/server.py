@@ -281,12 +281,58 @@ async def otp_verify(body: OtpVerify):
         "mobile": user["mobile"], "org_id": user.get("org_id")}}
 
 
+import httpx
+
+EMERGENT_SESSION_URL = "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data"
+
+
+class GoogleSession(BaseModel):
+    session_id: str
+
+
+@api.post("/auth/google/session")
+async def google_session(body: GoogleSession):
+    """Exchange an Emergent Google Auth session_id for our app JWT.
+    Google-authenticated users are mapped to role=client by email."""
+    try:
+        async with httpx.AsyncClient(timeout=15) as hc:
+            resp = await hc.get(EMERGENT_SESSION_URL, headers={"X-Session-ID": body.session_id})
+        if resp.status_code != 200:
+            raise HTTPException(401, "Invalid or expired Google session")
+        data = resp.json()
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(502, "Could not verify Google session")
+
+    email = (data.get("email") or "").lower()
+    name = data.get("name") or "Client Admin"
+    picture = data.get("picture") or ""
+    if not email:
+        raise HTTPException(400, "Google account has no email")
+
+    user = await db.users.find_one({"email": email, "role": "client"})
+    if not user:
+        user = {
+            "id": new_id(), "role": "client", "email": email, "name": name,
+            "picture": picture, "auth_provider": "google", "mobile": None,
+            "org_id": None, "created_at": now_iso(),
+        }
+        await db.users.insert_one(user)
+    else:
+        await db.users.update_one({"id": user["id"]}, {"$set": {"name": name, "picture": picture}})
+    await audit("client_login_google", clean(user))
+    return {"token": make_token(clean(user)), "user": {
+        "id": user["id"], "role": "client", "name": name, "email": email,
+        "org_id": user.get("org_id"), "picture": picture}}
+
+
 @api.get("/auth/me")
 async def me(user: dict = Depends(get_current_user)):
     org = None
     if user.get("org_id"):
         org = clean(await db.organizations.find_one({"id": user["org_id"]}))
-    return {"user": {k: user.get(k) for k in ("id", "role", "name", "email", "mobile", "org_id")}, "org": org}
+    return {"user": {k: user.get(k) for k in ("id", "role", "name", "email", "mobile", "org_id", "picture")}, "org": org}
 
 
 # --------------------------------------------------------------------------- #

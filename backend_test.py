@@ -89,8 +89,8 @@ class FaizZabAPITester:
         self.log("FaizZab Backend API Test Suite", "INFO")
         self.log("=" * 80, "INFO")
 
-        # 1. Public Catalogue Tests
-        self.log("\n[1] PUBLIC CATALOGUE TESTS", "INFO")
+        # 1. Public Catalogue Tests (EXPANDED CONTENT PACKS)
+        self.log("\n[1] PUBLIC CATALOGUE TESTS - EXPANDED CONTENT PACKS", "INFO")
         success, data = self.test("GET /catalogue", "GET", "catalogue", 200)
         if success:
             toolkits = data.get("toolkits", [])
@@ -107,14 +107,86 @@ class FaizZabAPITester:
                 self.log(f"✗ Price mismatch", "FAIL")
                 self.tests_failed += 1
 
-        success, data = self.test("GET /catalogue/doc-composer-11 (DPDPA)", "GET", "catalogue/dpdpa", 200)
+        # Test ISO 27001 - should have 58 documents
+        success, data = self.test("GET /catalogue/iso-27001 (58 docs)", "GET", "catalogue/iso-27001", 200, critical=True)
         if success:
+            doc_count = data.get("document_count", 0)
+            if doc_count == 58:
+                self.log(f"✓ ISO 27001 has exactly 58 documents", "PASS")
+                self.tests_passed += 1
+            else:
+                self.log(f"✗ ISO 27001 expected 58 documents, found {doc_count}", "FAIL")
+                self.tests_failed += 1
+                self.critical_failures.append(f"ISO 27001 document count mismatch: expected 58, got {doc_count}")
+            
+            # Check manifest for placeholders
+            manifest = data.get("manifest", [])
+            has_placeholder = False
+            for doc in manifest:
+                classification = str(doc.get("classification", ""))
+                if "{" in classification:
+                    has_placeholder = True
+                    self.log(f"✗ Found raw placeholder in {doc.get('doc_id')}: {classification}", "FAIL")
+                    self.tests_failed += 1
+                    break
+            if not has_placeholder:
+                self.log(f"✓ ISO 27001 manifest has NO raw '{{' placeholders in classification", "PASS")
+                self.tests_passed += 1
+
+        # Test DPDPA - should have 58 documents
+        success, data = self.test("GET /catalogue/dpdpa (58 docs)", "GET", "catalogue/dpdpa", 200, critical=True)
+        if success:
+            doc_count = data.get("document_count", 0)
+            if doc_count == 58:
+                self.log(f"✓ DPDPA has exactly 58 documents", "PASS")
+                self.tests_passed += 1
+            else:
+                self.log(f"✗ DPDPA expected 58 documents, found {doc_count}", "FAIL")
+                self.tests_failed += 1
+                self.critical_failures.append(f"DPDPA document count mismatch: expected 58, got {doc_count}")
+            
             if data.get("legal_disclaimer"):
                 self.log(f"✓ DPDPA has legal disclaimer", "PASS")
                 self.tests_passed += 1
+            
+            # Check manifest for placeholders
             manifest = data.get("manifest", [])
-            if len(manifest) > 20:
-                self.log(f"✓ Manifest has {len(manifest)} documents", "PASS")
+            has_placeholder = False
+            for doc in manifest:
+                classification = str(doc.get("classification", ""))
+                if "{" in classification:
+                    has_placeholder = True
+                    self.log(f"✗ Found raw placeholder in {doc.get('doc_id')}: {classification}", "FAIL")
+                    self.tests_failed += 1
+                    break
+            if not has_placeholder:
+                self.log(f"✓ DPDPA manifest has NO raw '{{' placeholders in classification", "PASS")
+                self.tests_passed += 1
+
+        # Test ISO 9001 - should have 51 documents
+        success, data = self.test("GET /catalogue/iso-9001 (51 docs)", "GET", "catalogue/iso-9001", 200, critical=True)
+        if success:
+            doc_count = data.get("document_count", 0)
+            if doc_count == 51:
+                self.log(f"✓ ISO 9001 has exactly 51 documents", "PASS")
+                self.tests_passed += 1
+            else:
+                self.log(f"✗ ISO 9001 expected 51 documents, found {doc_count}", "FAIL")
+                self.tests_failed += 1
+                self.critical_failures.append(f"ISO 9001 document count mismatch: expected 51, got {doc_count}")
+            
+            # Check manifest for placeholders
+            manifest = data.get("manifest", [])
+            has_placeholder = False
+            for doc in manifest:
+                classification = str(doc.get("classification", ""))
+                if "{" in classification:
+                    has_placeholder = True
+                    self.log(f"✗ Found raw placeholder in {doc.get('doc_id')}: {classification}", "FAIL")
+                    self.tests_failed += 1
+                    break
+            if not has_placeholder:
+                self.log(f"✓ ISO 9001 manifest has NO raw '{{' placeholders in classification", "PASS")
                 self.tests_passed += 1
 
         # 2. Admin Authentication with MFA
@@ -132,6 +204,14 @@ class FaizZabAPITester:
             self.admin_token = data.get("token")
             if self.admin_token:
                 self.log(f"✓ Admin token obtained", "PASS")
+                self.tests_passed += 1
+        
+        # Test /api/auth/me with admin token
+        success, data = self.test("GET /auth/me (admin)", "GET", "auth/me", 200, token=self.admin_token)
+        if success:
+            user = data.get("user", {})
+            if user.get("role") == "admin":
+                self.log(f"✓ /auth/me returns admin user correctly", "PASS")
                 self.tests_passed += 1
 
         # 3. Client OTP Authentication
@@ -153,6 +233,14 @@ class FaizZabAPITester:
             if self.client1_token:
                 self.log(f"✓ Client 1 token obtained", "PASS")
                 self.tests_passed += 1
+        
+        # Test /api/auth/me with client token
+        success, data = self.test("GET /auth/me (client)", "GET", "auth/me", 200, token=self.client1_token)
+        if success:
+            user = data.get("user", {})
+            if user.get("role") == "client":
+                self.log(f"✓ /auth/me returns client user correctly", "PASS")
+                self.tests_passed += 1
 
         # Create second client for tenant isolation tests
         success, data = self.test("Client 2 OTP request", "POST", "auth/otp/request", 200,
@@ -161,6 +249,17 @@ class FaizZabAPITester:
                                    data={"mobile": mobile2, "code": CLIENT_OTP_CODE, "name": "Test Client 2"})
         if success:
             self.client2_token = data.get("token")
+        
+        # 3a. Google Auth Endpoint Test (NEW)
+        self.log("\n[3a] GOOGLE AUTH ENDPOINT TEST", "INFO")
+        success, data = self.test("Google auth with invalid session_id", "POST", "auth/google/session", 401,
+                                   data={"session_id": "invalid_session_12345"}, critical=True)
+        if success:
+            self.log(f"✓ Google auth endpoint returns 401 for invalid session_id (graceful failure)", "PASS")
+            self.tests_passed += 1
+        else:
+            self.log(f"✗ Google auth endpoint did not return 401 for invalid session_id", "FAIL")
+            self.critical_failures.append("Google auth endpoint did not fail gracefully on invalid session_id")
 
         # 4. Organization Management
         self.log("\n[4] ORGANIZATION MANAGEMENT", "INFO")
@@ -207,11 +306,11 @@ class FaizZabAPITester:
             self.log(f"✓ LAUNCH20 gives 20% off", "PASS")
             self.tests_passed += 1
 
-        # 6. Order + Payment Flow
-        self.log("\n[6] ORDER + PAYMENT FLOW", "INFO")
-        success, data = self.test("Create order with coupon", "POST", "orders", 200,
+        # 6. Order + Payment Flow (ISO 27001 for expanded pack test)
+        self.log("\n[6] ORDER + PAYMENT FLOW (ISO 27001 - EXPANDED PACK)", "INFO")
+        success, data = self.test("Create order with coupon (ISO 27001)", "POST", "orders", 200,
                                    token=self.client1_token,
-                                   data={"standard_slug": "dpdpa", "coupon": COUPON_CODE},
+                                   data={"standard_slug": "iso-27001", "coupon": COUPON_CODE},
                                    critical=True)
         order1_id = None
         if success:
@@ -250,16 +349,16 @@ class FaizZabAPITester:
             self.log(f"✓ Entitlements retrieved", "PASS")
             self.tests_passed += 1
 
-        # 7. Onboarding Flow
-        self.log("\n[7] ONBOARDING FLOW", "INFO")
-        success, data = self.test("GET onboarding schema", "GET", "onboarding/schema/dpdpa", 200)
+        # 7. Onboarding Flow (ISO 27001 for expanded pack)
+        self.log("\n[7] ONBOARDING FLOW (ISO 27001)", "INFO")
+        success, data = self.test("GET onboarding schema", "GET", "onboarding/schema/iso-27001", 200)
         if success:
             sections = data.get("sections", [])
             if len(sections) >= 9:
-                self.log(f"✓ Schema has {len(sections)} sections (A-I)", "PASS")
+                self.log(f"✓ Schema has {len(sections)} sections", "PASS")
                 self.tests_passed += 1
 
-        # Minimal answers for required fields
+        # Minimal answers for required fields (ISO 27001)
         answers = {
             "legal_name": "Test Org Alpha Pvt Ltd",
             "trade_name": "Alpha",
@@ -274,6 +373,7 @@ class FaizZabAPITester:
             "top_management": "CEO Alpha",
             "ms_coordinator": "Coordinator Alpha",
             "internal_auditor": "Auditor Alpha",
+            "security_contact": "Security Alpha",
             "included_services": "Analytics platform",
             "included_locations": "Bangalore",
             "processes": ["Sales", "IT", "Support"],
@@ -281,9 +381,7 @@ class FaizZabAPITester:
             "remote_work": True,
             "jurisdiction": "India",
             "processes_personal_data": True,
-            "data_categories": "Name, email, phone",
-            "processes_children": False,
-            "uses_processors": True,
+            "info_assets": "Customer database, Application servers, Employee data",
             "brand_color": "#1F3A5F",
             "classification": "Confidential",
             "version": "1.0",
@@ -296,7 +394,7 @@ class FaizZabAPITester:
 
         success, data = self.test("Save onboarding draft", "POST", "onboarding/draft", 200,
                                    token=self.client1_token,
-                                   data={"standard_slug": "dpdpa", "answers": answers})
+                                   data={"standard_slug": "iso-27001", "answers": answers})
         if success:
             completion = data.get("completion", 0)
             self.log(f"✓ Draft saved, completion: {completion}%", "PASS")
@@ -304,7 +402,7 @@ class FaizZabAPITester:
 
         success, data = self.test("Submit onboarding", "POST", "onboarding/submit", 200,
                                    token=self.client1_token,
-                                   data={"standard_slug": "dpdpa", "answers": answers, "declaration": True},
+                                   data={"standard_slug": "iso-27001", "answers": answers, "declaration": True},
                                    critical=True)
         submission1_id = None
         if success:
@@ -342,8 +440,8 @@ class FaizZabAPITester:
                 self.log(f"✓ Submission approved", "PASS")
                 self.tests_passed += 1
 
-        # 9. Document Generation
-        self.log("\n[9] DOCUMENT GENERATION", "INFO")
+        # 9. Document Generation (EXPANDED PACK - ~90+ artifacts expected)
+        self.log("\n[9] DOCUMENT GENERATION (EXPANDED PACK - ISO 27001)", "INFO")
         if submission1_id:
             success, data = self.test("Admin: generate documents", "POST",
                                        f"admin/generate/{submission1_id}", 200,
@@ -355,9 +453,14 @@ class FaizZabAPITester:
                 if status == "generated":
                     self.log(f"✓ Documents generated: {count} artifacts", "PASS")
                     self.tests_passed += 1
-                if count >= 20:
-                    self.log(f"✓ Generated {count} documents (expected ~26)", "PASS")
+                # ISO 27001 has 58 source docs, each DOCX generates DOCX+PDF, XLSX generates XLSX
+                # Expected: ~58 docs -> ~40 DOCX (40*2=80) + ~18 XLSX (18) = ~98 artifacts
+                if count >= 90:
+                    self.log(f"✓ Generated {count} artifacts (expected ~90+ for 58-doc pack)", "PASS")
                     self.tests_passed += 1
+                else:
+                    self.log(f"⚠️  Generated {count} artifacts (expected ~90+ for 58-doc pack)", "WARN")
+                    self.tests_failed += 1
                 if zip_id:
                     self.log(f"✓ ZIP package created: {zip_id}", "PASS")
                     self.tests_passed += 1
@@ -369,20 +472,31 @@ class FaizZabAPITester:
                 self.log(f"✓ Documents published", "PASS")
                 self.tests_passed += 1
 
-        # 10. Downloads (with TENANT ISOLATION test)
+        # 10. Downloads (with TENANT ISOLATION test + format verification)
         self.log("\n[10] DOWNLOADS & TENANT ISOLATION (CRITICAL)", "INFO")
         success, data = self.test("Client 1: list downloads", "GET", "downloads", 200,
                                    token=self.client1_token, critical=True)
         artifact1_id = None
+        docx_artifact = None
+        xlsx_artifact = None
+        zip_artifact = None
         if success:
             docs = data.get("documents", [])
             if len(docs) > 0:
                 self.log(f"✓ Client 1 can see {len(docs)} documents", "PASS")
                 self.tests_passed += 1
                 artifact1_id = docs[0].get("id")
+                # Find different format artifacts for download testing
+                for doc in docs:
+                    if doc.get("format") == "docx" and not docx_artifact:
+                        docx_artifact = doc.get("id")
+                    elif doc.get("format") == "xlsx" and not xlsx_artifact:
+                        xlsx_artifact = doc.get("id")
+                    elif doc.get("format") == "zip" and not zip_artifact:
+                        zip_artifact = doc.get("id")
+                
                 # Check for ZIP
-                zip_docs = [d for d in docs if d.get("format") == "zip"]
-                if zip_docs:
+                if zip_artifact:
                     self.log(f"✓ ZIP package present in downloads", "PASS")
                     self.tests_passed += 1
 
@@ -399,13 +513,29 @@ class FaizZabAPITester:
                 self.log(f"✗ CRITICAL: TENANT ISOLATION BREACH! Client 2 could access Client 1's artifact", "FAIL")
                 self.critical_failures.append("TENANT ISOLATION BREACH: Client 2 accessed Client 1's artifact")
 
-        # Client 1 should be able to download their own artifact
-        if artifact1_id:
-            success, data = self.test("Client 1: download own artifact", "GET",
-                                       f"downloads/{artifact1_id}", 200,
+        # Client 1 should be able to download their own artifacts (test different formats)
+        if docx_artifact:
+            success, data = self.test("Client 1: download DOCX artifact", "GET",
+                                       f"downloads/{docx_artifact}", 200,
                                        token=self.client1_token)
             if success:
-                self.log(f"✓ Client 1 can download own artifact", "PASS")
+                self.log(f"✓ Client 1 can download DOCX artifact", "PASS")
+                self.tests_passed += 1
+        
+        if xlsx_artifact:
+            success, data = self.test("Client 1: download XLSX artifact", "GET",
+                                       f"downloads/{xlsx_artifact}", 200,
+                                       token=self.client1_token)
+            if success:
+                self.log(f"✓ Client 1 can download XLSX artifact", "PASS")
+                self.tests_passed += 1
+        
+        if zip_artifact:
+            success, data = self.test("Client 1: download ZIP package", "GET",
+                                       f"downloads/{zip_artifact}", 200,
+                                       token=self.client1_token)
+            if success:
+                self.log(f"✓ Client 1 can download ZIP package", "PASS")
                 self.tests_passed += 1
 
         # 11. Additional Requirements Flow

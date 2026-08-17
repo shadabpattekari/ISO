@@ -1,26 +1,14 @@
 [
   {
-    "content": "Phase 1 (POC): Core document-generation engine (DOCX/XLSX/PDF/ZIP + validation)",
+    "content": "Deeper Toolkits: ISO 27001 (58), DPDPA (58), ISO 9001 (51) — render + validate + generation tested (92 artifacts)",
     "status": "completed"
   },
   {
-    "content": "Phase 2: Full backend (auth, tenant isolation, commerce, onboarding, verification, generation, downloads, additional requirements, dashboards, audit)",
+    "content": "Real Login: Emergent Google Auth (backend session endpoint + frontend button + /auth/callback) — tested",
     "status": "completed"
   },
   {
-    "content": "Phase 2: 3 standards content packs (ISO 27001, DPDPA, ISO 9001)",
+    "content": "End-to-end testing (backend 100%, frontend 95%+, regression + tenant isolation intact)",
     "status": "completed"
-  },
-  {
-    "content": "Phase 2: Full frontend (public + client + admin, PWA)",
-    "status": "completed"
-  },
-  {
-    "content": "Phase 2: End-to-end testing with testing_agent_v3 (backend 100%, frontend 95%+, tenant isolation PASSED)",
-    "status": "completed"
-  },
-  {
-    "content": "Phase 3 (future): Add ISO 42001 & 27701 content packs, notifications/email templates, deeper content per standard",
-    "status": "pending"
   }
 ]
