@@ -82,20 +82,112 @@ def _std_name(std):
 
 def D(std, kind, num, title, clause, tclass, klass, category, purpose, owner, secs,
       kpis=None, ncs=None, aqs=None, related=None, disclaimer=None):
-    """Build a DOCX document spec."""
+    """Build a DOCX document spec (auto-enriched with full controlled structure)."""
     d = {
         "doc_id": f"{std['doc_prefix']}-{kind}-{num:03d}",
         "title": title, "standard": _std_name(std), "format": "docx", "category": category,
         "template_class": tclass, "classification": klass, "purpose": purpose,
         "clause_refs": clause if isinstance(clause, list) else [clause],
-        "owner_role": owner, "sections": secs,
+        "owner_role": owner, "sections": list(secs),
     }
     if kpis: d["kpis"] = kpis
     if ncs: d["common_nonconformities"] = ncs
     if aqs: d["audit_questions"] = aqs
     if related: d["related_documents"] = related
     if disclaimer: d["disclaimer"] = disclaimer
+    _enrich(d)
     return d
+
+
+def _enrich(d: Dict[str, Any]) -> None:
+    """Add the full controlled document structure so every document is rich,
+    multi-page and genuinely useful (applies to policies, procedures, forms, etc.)."""
+    secs = d["sections"]
+    headings = {s["heading"].lower() for s in secs}
+    owner = d.get("owner_role", "the Document Owner")
+
+    def has(*words):
+        return any(any(w in h for w in words) for h in headings)
+
+    # Ensure a Scope section
+    if not has("scope"):
+        secs.append(S("Scope", "This document applies across {{org.legal_name}} (trading as {{org.trade_name}}), "
+                     "covering the personnel, processes, locations ({{org.locations}}) and technologies within the "
+                     "defined management-system scope. Where activities are outsourced, the organization remains "
+                     "responsible for ensuring the requirements of this document are met."))
+
+    # Definitions
+    if not has("definition"):
+        secs.append(S("Definitions", "For the purposes of this document the following definitions apply:", bullets=[
+            "Organization — {{org.legal_name}}, trading as {{org.trade_name}}.",
+            "Top management — the person or group who directs and controls the organization at the highest level "
+            "({{roles.top_management}}).",
+            "Documented information — information required to be controlled and maintained, and its medium.",
+            "Nonconformity — non-fulfilment of a requirement.",
+            "Corrective action — action to eliminate the cause of a nonconformity and prevent recurrence.",
+            "Interested party — a person or organization that can affect, be affected by, or perceive itself to be "
+            "affected by a decision or activity.",
+        ]))
+
+    # Roles & Responsibilities (as a table the engine renders)
+    if "responsibilities" not in d and not has("roles", "responsib"):
+        d["responsibilities"] = [
+            ("{{roles.top_management}}", "Provide leadership, approve this document and ensure adequate resources."),
+            (owner, "Own, maintain and communicate this document and ensure it is implemented and reviewed."),
+            ("{{roles.internal_auditor}}", "Independently audit conformity with this document and report findings."),
+            ("All personnel", "Understand and comply with the requirements relevant to their role and report issues."),
+        ]
+
+    # Implementation Guidance
+    if not has("implementation", "guidance"):
+        secs.append(S("Implementation Guidance", "Practical steps for {{org.trade_name}} to implement this document "
+                     "effectively, proportionate to an organization of approximately {{org.employee_count}} people:", bullets=[
+            "Assign the document owner and confirm responsibilities with the individuals named above.",
+            "Communicate the document to affected personnel and provide any training that is required.",
+            "Put the described controls and steps into day-to-day operation and integrate them with existing tools.",
+            "Create and retain the records and evidence listed below as proof of operation.",
+            "Review the document at the planned frequency and after any significant change to the organization.",
+            "Where roles are combined in a smaller organization, preserve independence for audit and approval activities.",
+        ]))
+
+    # Records & Evidence
+    if not has("record", "evidence"):
+        secs.append(S("Records and Evidence Expected", "The following records demonstrate that this document is "
+                     "effectively implemented and are expected to be available during an audit:", bullets=[
+            "Approved, version-controlled copy of this document (see the Master Document Register).",
+            "Communication and awareness records showing relevant personnel were informed.",
+            "Completed registers, logs or forms referenced within this document.",
+            "Review history showing the document is current and fit for purpose.",
+        ]))
+
+    # Exceptions & Escalation
+    if not has("exception", "escalation"):
+        secs.append(S("Exceptions and Escalation", "Any exception to this document must be risk-assessed, documented "
+                     "and approved by {{roles.top_management}} for a defined period. Issues, breaches or uncertainties "
+                     "relating to this document must be escalated to " + owner + " and, where significant, to top management."))
+
+    # Defaults for the summary/audit sections
+    d.setdefault("kpis", [
+        "Percentage of relevant personnel aware of this document (target 100%).",
+        "This document reviewed within its defined review period (target: on time).",
+        "Number of nonconformities related to this area (target: reducing trend).",
+    ])
+    d.setdefault("common_nonconformities", [
+        "Document not formally approved or not communicated to affected personnel.",
+        "No objective evidence that the document is being implemented in practice.",
+        "Document not reviewed within its defined review period.",
+        "Records or registers referenced in this document not maintained.",
+    ])
+    d.setdefault("audit_questions", [
+        "Is this document approved, version-controlled and available to those who need it?",
+        "Can personnel describe how its requirements apply to their day-to-day work?",
+        "Is there objective evidence that the document is being followed?",
+        "Has the document been reviewed and kept up to date after changes?",
+    ])
+    d.setdefault("related_documents", [
+        "{{org.trade_name}} Management System Manual", "Master Document Register",
+        "Internal Audit Programme", "Corrective Action Register",
+    ])
 
 
 def R(std, num, title, sheet, clause, tclass, cols, rows=None, category="register", kind="REG"):

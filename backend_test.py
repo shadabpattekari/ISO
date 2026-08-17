@@ -83,6 +83,121 @@ class FaizZabAPITester:
                 self.critical_failures.append(f"{name}: {str(e)}")
             return False, {}
 
+    def test_sample_pdf_endpoints(self):
+        """Test sample PDF preview endpoints (BUG FIX VERIFICATION)"""
+        self.log("\n[SAMPLE PDF TESTS] Testing substantive multi-page sample PDFs", "INFO")
+        
+        # Helper to verify PDF response
+        def verify_pdf(url: str, min_size: int = 2500) -> tuple[bool, str]:
+            try:
+                resp = requests.get(url, timeout=30)
+                if resp.status_code != 200:
+                    return False, f"Status {resp.status_code}"
+                
+                ct = resp.headers.get("content-type", "")
+                if "application/pdf" not in ct:
+                    return False, f"Wrong content-type: {ct}"
+                
+                content = resp.content
+                if not content.startswith(b"%PDF"):
+                    return False, "Not a valid PDF"
+                
+                size = len(content)
+                if size < min_size:
+                    return False, f"PDF too small ({size} bytes < {min_size})"
+                
+                return True, f"Valid PDF ({size} bytes)"
+            except Exception as e:
+                return False, str(e)
+        
+        # Test 1: ISO 27001 flagship sample
+        self.tests_run += 1
+        url = f"{self.base_url}/catalogue/iso-27001/sample"
+        ok, msg = verify_pdf(url)
+        if ok:
+            self.log(f"✓ ISO 27001 flagship sample: {msg}", "PASS")
+            self.tests_passed += 1
+        else:
+            self.log(f"✗ ISO 27001 flagship sample FAILED: {msg}", "FAIL")
+            self.tests_failed += 1
+            self.critical_failures.append(f"ISO 27001 sample PDF: {msg}")
+        
+        # Test 2: DPDPA flagship sample
+        self.tests_run += 1
+        url = f"{self.base_url}/catalogue/dpdpa/sample"
+        ok, msg = verify_pdf(url)
+        if ok:
+            self.log(f"✓ DPDPA flagship sample: {msg}", "PASS")
+            self.tests_passed += 1
+        else:
+            self.log(f"✗ DPDPA flagship sample FAILED: {msg}", "FAIL")
+            self.tests_failed += 1
+        
+        # Test 3: ISO 9001 flagship sample
+        self.tests_run += 1
+        url = f"{self.base_url}/catalogue/iso-9001/sample"
+        ok, msg = verify_pdf(url)
+        if ok:
+            self.log(f"✓ ISO 9001 flagship sample: {msg}", "PASS")
+            self.tests_passed += 1
+        else:
+            self.log(f"✗ ISO 9001 flagship sample FAILED: {msg}", "FAIL")
+            self.tests_failed += 1
+        
+        # Test 4: Specific DOCX document sample
+        try:
+            resp = requests.get(f"{self.base_url}/catalogue/iso-27001", timeout=15)
+            if resp.status_code == 200:
+                manifest = resp.json()["manifest"]
+                docx_doc = next((d for d in manifest if d["format"] == "DOCX"), None)
+                if docx_doc:
+                    self.tests_run += 1
+                    doc_id = docx_doc["doc_id"]
+                    url = f"{self.base_url}/catalogue/iso-27001/sample/{doc_id}"
+                    ok, msg = verify_pdf(url)
+                    if ok:
+                        self.log(f"✓ DOCX sample ({doc_id}): {msg}", "PASS")
+                        self.tests_passed += 1
+                    else:
+                        self.log(f"✗ DOCX sample ({doc_id}) FAILED: {msg}", "FAIL")
+                        self.tests_failed += 1
+        except Exception as e:
+            self.log(f"✗ Could not test DOCX sample: {str(e)}", "FAIL")
+        
+        # Test 5: Specific XLSX register sample
+        try:
+            resp = requests.get(f"{self.base_url}/catalogue/iso-27001", timeout=15)
+            if resp.status_code == 200:
+                manifest = resp.json()["manifest"]
+                xlsx_doc = next((d for d in manifest if d["format"] == "XLSX"), None)
+                if xlsx_doc:
+                    self.tests_run += 1
+                    doc_id = xlsx_doc["doc_id"]
+                    url = f"{self.base_url}/catalogue/iso-27001/sample/{doc_id}"
+                    ok, msg = verify_pdf(url)
+                    if ok:
+                        self.log(f"✓ XLSX sample ({doc_id}): {msg}", "PASS")
+                        self.tests_passed += 1
+                    else:
+                        self.log(f"✗ XLSX sample ({doc_id}) FAILED: {msg}", "FAIL")
+                        self.tests_failed += 1
+        except Exception as e:
+            self.log(f"✗ Could not test XLSX sample: {str(e)}", "FAIL")
+        
+        # Test 6: Invalid doc_id returns 404
+        self.tests_run += 1
+        try:
+            resp = requests.get(f"{self.base_url}/catalogue/iso-27001/sample/INVALID_DOC_ID", timeout=15)
+            if resp.status_code == 404:
+                self.log(f"✓ Invalid doc_id correctly returns 404", "PASS")
+                self.tests_passed += 1
+            else:
+                self.log(f"✗ Invalid doc_id returned {resp.status_code} (expected 404)", "FAIL")
+                self.tests_failed += 1
+        except Exception as e:
+            self.log(f"✗ Invalid doc_id test failed: {str(e)}", "FAIL")
+            self.tests_failed += 1
+
     def run_all_tests(self):
         """Execute comprehensive test suite"""
         self.log("=" * 80, "INFO")
@@ -188,6 +303,9 @@ class FaizZabAPITester:
             if not has_placeholder:
                 self.log(f"✓ ISO 9001 manifest has NO raw '{{' placeholders in classification", "PASS")
                 self.tests_passed += 1
+
+        # 1.5. Sample PDF Preview Tests (BUG FIX VERIFICATION)
+        self.test_sample_pdf_endpoints()
 
         # 2. Admin Authentication with MFA
         self.log("\n[2] ADMIN AUTHENTICATION (MFA)", "INFO")

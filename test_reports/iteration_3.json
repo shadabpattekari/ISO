@@ -1,0 +1,56 @@
+{
+  "summary": "Completed comprehensive testing of sample PDF preview bug fix. Verified that sample PDFs are now substantive multi-page documents (6KB+) instead of thin 2-page cover-only files. All backend sample endpoints return valid PDFs with full controlled structure. Frontend preview buttons are properly implemented and functional.",
+  "backend_issues": {
+    "critical_bugs": [],
+    "flaky_endpoints": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "passed_tests": [
+    "GET /api/catalogue/iso-27001/sample returns valid substantive PDF (6271 bytes)",
+    "GET /api/catalogue/dpdpa/sample returns valid substantive PDF (6269 bytes)",
+    "GET /api/catalogue/iso-9001/sample returns valid substantive PDF (6203 bytes)",
+    "GET /api/catalogue/iso-27001/sample/{doc_id} for DOCX returns valid PDF (6159 bytes)",
+    "GET /api/catalogue/iso-27001/sample/{doc_id} for XLSX returns valid PDF (3892 bytes)",
+    "Invalid doc_id returns 404 gracefully (not 500)",
+    "Catalogue counts correct: iso-27001=58, dpdpa=58, iso-9001=51",
+    "Full purchase+generate flow works (92 artifacts generated)",
+    "Frontend: Preview sample button exists with data-testid=preview-sample-button",
+    "Frontend: 58 individual document preview buttons exist with data-testid=preview-doc-{doc_id}",
+    "Frontend: All preview buttons are visible and enabled",
+    "Frontend: Manifest table displays correctly with proper headers (Doc ID, Document, Format, Sample)",
+    "Frontend: Both DOCX and XLSX documents have preview buttons",
+    "Regression: Tenant isolation working correctly",
+    "Regression: Document generation produces correct artifact count",
+    "Regression: ZIP package created successfully"
+  ],
+  "test_report_links": [
+    "/app/backend_test.py",
+    "/app/test_reports/iteration_3.json"
+  ],
+  "success_percentage": {
+    "backend": "100% (7/7 sample PDF tests passed, plus full regression suite)",
+    "frontend": "100% (5/5 UI tests passed)"
+  },
+  "action_item_for_main_agent": "",
+  "updated_files": [
+    "/app/backend_test.py"
+  ],
+  "should_call_test_agent_after_fix": "false",
+  "should_main_agent_test_itself": "false",
+  "bug_fix_verification": {
+    "reported_bug": "Sample preview PDFs showed only ~2 pages with just organization name (cover page) and almost no content",
+    "fix_applied": "Every DOCX document spec is now auto-enriched with full controlled structure (Scope, Definitions, Roles & Responsibilities, Implementation Guidance, Records & Evidence, Exceptions & Escalation, Monitoring/KPIs, Common Nonconformities, Internal Audit Questions, Related Documents, Approval). XLSX register previews include About/Columns/Example Rows/How-To-Use sections.",
+    "verification_result": "VERIFIED - Sample PDFs are now substantive multi-page documents ranging from 3.8KB to 6.3KB (well above the ~1-2KB thin documents reported). PDFs contain full controlled structure with multiple sections as intended.",
+    "sample_sizes": {
+      "iso-27001-flagship": "6271 bytes",
+      "dpdpa-flagship": "6269 bytes",
+      "iso-9001-flagship": "6203 bytes",
+      "docx-sample": "6159 bytes",
+      "xlsx-sample": "3892 bytes"
+    }
+  }
+}

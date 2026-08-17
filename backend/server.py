@@ -408,18 +408,25 @@ def _sample_pdf_bytes(spec: dict) -> bytes:
         # Build a readable preview spec from register columns + sample rows.
         cols = spec.get("columns", [])
         rows = spec.get("rows", [])
-        bullets = [c["label"] for c in cols]
+        bullets = [f"{c['label']}" for c in cols]
         row_lines = []
-        for r in rows[:3]:
+        for r in rows[:5]:
             row_lines.append(" | ".join(str(r.get(c["key"], "")) for c in cols))
+        rows_body = ("\n".join(row_lines) if row_lines
+                     else "This is a ready-to-use blank tracker: your team fills in rows during implementation. "
+                          "The columns above define exactly what to record.")
         preview_spec = {
             "doc_id": spec["doc_id"], "title": spec["title"], "standard": spec["standard"],
             "classification": "Sample", "clause_refs": spec.get("clause_refs", []),
             "owner_role": "{{roles.ms_coordinator}}",
             "sections": [
-                {"heading": "Register / Tracker Columns", "body": "This spreadsheet register contains the "
-                 "following columns (delivered as an editable XLSX file):", "bullets": bullets},
-                {"heading": "Example Rows", "body": "\n".join(row_lines) or "Empty tracker — you fill this in during implementation."},
+                {"heading": "About This Register", "body": f"{spec.get('purpose', spec['title'])} "
+                 "It is delivered as an editable Microsoft Excel (.xlsx) file that you maintain over time as "
+                 "objective evidence for audits."},
+                {"heading": "Columns Captured", "body": "The register records the following fields:", "bullets": bullets},
+                {"heading": "Example Rows", "body": rows_body},
+                {"heading": "How To Use", "body": "Assign an owner, populate the register during implementation, "
+                 "keep it current, and present it during internal and certification audits as evidence."},
             ],
         }
         return render_pdf_document(preview_spec, ctx, watermark="SAMPLE")
