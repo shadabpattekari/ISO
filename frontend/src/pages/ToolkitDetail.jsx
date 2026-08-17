@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import api, { rupee } from "@/lib/api";
+import api, { rupee, API } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { Logo } from "@/components/common/Logo";
 import { Button } from "@/components/ui/button";
@@ -8,9 +8,14 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Disclaimer } from "@/components/common/Disclaimer";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, ShieldCheck, FileText, FileSpreadsheet, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, ShieldCheck, FileText, FileSpreadsheet, CheckCircle2, Eye } from "lucide-react";
 
 const fmtIcon = (f) => (f === "XLSX" ? FileSpreadsheet : FileText);
+
+const openSample = (slug, docId) => {
+  const url = docId ? `${API}/catalogue/${slug}/sample/${docId}` : `${API}/catalogue/${slug}/sample`;
+  window.open(url, "_blank", "noopener");
+};
 
 export default function ToolkitDetail() {
   const { slug } = useParams();
@@ -64,6 +69,7 @@ export default function ToolkitDetail() {
 
             <div>
               <h2 className="text-lg font-display mb-3">Toolkit manifest · {t.document_count} documents</h2>
+              <p className="text-sm text-[hsl(var(--muted-foreground))] mb-3">Open a watermarked <b>sample</b> of any document to check the quality and structure before you buy.</p>
               <Card className="card-shadow overflow-hidden">
                 <div className="max-h-[560px] overflow-auto">
                   <Table>
@@ -72,7 +78,7 @@ export default function ToolkitDetail() {
                         <TableHead className="w-[110px]">Doc ID</TableHead>
                         <TableHead>Document</TableHead>
                         <TableHead className="w-[90px]">Format</TableHead>
-                        <TableHead className="hidden md:table-cell">Classification</TableHead>
+                        <TableHead className="w-[110px] text-right">Sample</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -86,7 +92,11 @@ export default function ToolkitDetail() {
                               <div className="text-xs text-[hsl(var(--muted-foreground))]">{d.template_class}</div>
                             </TableCell>
                             <TableCell><Badge variant="outline" className="gap-1"><Icon className="h-3 w-3" />{d.format}</Badge></TableCell>
-                            <TableCell className="hidden md:table-cell text-xs">{d.classification}</TableCell>
+                            <TableCell className="text-right">
+                              <Button size="sm" variant="ghost" onClick={() => openSample(slug, d.doc_id)} data-testid={`preview-doc-${d.doc_id}`}>
+                                <Eye className="h-4 w-4 mr-1" />Preview
+                              </Button>
+                            </TableCell>
                           </TableRow>
                         );
                       })}
@@ -110,6 +120,7 @@ export default function ToolkitDetail() {
                   ))}
                 </ul>
                 <Button className="w-full mt-5" size="lg" onClick={buy} data-testid="buy-toolkit-button">Buy this toolkit</Button>
+                <Button className="w-full mt-2" size="lg" variant="outline" onClick={() => openSample(slug)} data-testid="preview-sample-button"><Eye className="h-4 w-4 mr-2" />Preview a sample (PDF)</Button>
                 <p className="mt-3 text-[11px] text-[hsl(var(--muted-foreground))] text-center">Access granted only after verified payment. Documents generated after admin approval.</p>
               </Card>
               <Card className="card-shadow p-4 text-xs text-[hsl(var(--muted-foreground))]">

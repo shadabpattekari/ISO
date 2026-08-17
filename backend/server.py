@@ -379,6 +379,82 @@ async def catalogue_detail(slug: str):
     }
 
 
+def _demo_context() -> dict:
+    """Generic demo data used to render PUBLIC watermarked sample documents."""
+    return {
+        "org": {
+            "legal_name": "Acme Example Private Limited", "trade_name": "Acme Example",
+            "website": "acme.example", "industry": "Information Technology",
+            "employee_count": "35", "products_services": "Illustrative products and services",
+            "brand_color": "#94A3B8", "locations": ["Sample City HQ"], "logo_path": None,
+        },
+        "roles": {
+            "top_management": "Sample CEO", "ms_coordinator": "Sample Coordinator",
+            "internal_auditor": "Sample Auditor", "privacy_contact": "Sample Privacy Officer",
+            "security_contact": "Sample Security Officer",
+        },
+        "doc_control": {
+            "version": "SAMPLE", "effective_date": "Sample Date", "review_date": "Sample Date",
+            "classification": "Sample", "prepared_by": "Sample", "reviewed_by": "Sample",
+            "approved_by": "Sample",
+        },
+    }
+
+
+def _sample_pdf_bytes(spec: dict) -> bytes:
+    """Render a watermarked PDF preview for any spec (DOCX or XLSX register)."""
+    ctx = _demo_context()
+    if spec.get("format") == "xlsx":
+        # Build a readable preview spec from register columns + sample rows.
+        cols = spec.get("columns", [])
+        rows = spec.get("rows", [])
+        bullets = [c["label"] for c in cols]
+        row_lines = []
+        for r in rows[:3]:
+            row_lines.append(" | ".join(str(r.get(c["key"], "")) for c in cols))
+        preview_spec = {
+            "doc_id": spec["doc_id"], "title": spec["title"], "standard": spec["standard"],
+            "classification": "Sample", "clause_refs": spec.get("clause_refs", []),
+            "owner_role": "{{roles.ms_coordinator}}",
+            "sections": [
+                {"heading": "Register / Tracker Columns", "body": "This spreadsheet register contains the "
+                 "following columns (delivered as an editable XLSX file):", "bullets": bullets},
+                {"heading": "Example Rows", "body": "\n".join(row_lines) or "Empty tracker — you fill this in during implementation."},
+            ],
+        }
+        return render_pdf_document(preview_spec, ctx, watermark="SAMPLE")
+    return render_pdf_document(spec, ctx, watermark="SAMPLE")
+
+
+@api.get("/catalogue/{slug}/sample")
+async def sample_default(slug: str):
+    """Public watermarked PDF preview of a flagship document (opens in browser)."""
+    s = cp.get_standard(slug)
+    if not s:
+        raise HTTPException(404, "Toolkit not found")
+    manifest = cp.build_manifest(s)
+    # flagship = the policy document, else first docx
+    flagship = next((d for d in manifest if d["category"] == "policy"), manifest[0])
+    pdf = _sample_pdf_bytes(flagship)
+    return StreamingResponse(io.BytesIO(pdf), media_type="application/pdf",
+                             headers={"Content-Disposition": f'inline; filename="SAMPLE_{flagship["doc_id"]}.pdf"'})
+
+
+@api.get("/catalogue/{slug}/sample/{doc_id}")
+async def sample_doc(slug: str, doc_id: str):
+    """Public watermarked PDF preview of a specific manifest document."""
+    s = cp.get_standard(slug)
+    if not s:
+        raise HTTPException(404, "Toolkit not found")
+    spec = next((d for d in cp.build_manifest(s) if d["doc_id"] == doc_id), None)
+    if not spec:
+        raise HTTPException(404, "Document not found in this toolkit")
+    pdf = _sample_pdf_bytes(spec)
+    return StreamingResponse(io.BytesIO(pdf), media_type="application/pdf",
+                             headers={"Content-Disposition": f'inline; filename="SAMPLE_{spec["doc_id"]}.pdf"'})
+
+
+
 # --------------------------------------------------------------------------- #
 # Organization
 # --------------------------------------------------------------------------- #
