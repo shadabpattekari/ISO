@@ -1,0 +1,191 @@
+{
+  "overall_ok": true,
+  "reports": [
+    {
+      "profile": "SaaS",
+      "checks": [
+        {
+          "name": "validate:ISMS-POL-001",
+          "ok": true,
+          "detail": "no errors"
+        },
+        {
+          "name": "validate:DPDP-POL-001",
+          "ok": true,
+          "detail": "no errors"
+        },
+        {
+          "name": "validate:ISMS-REG-004",
+          "ok": true,
+          "detail": "no errors"
+        },
+        {
+          "name": "unique_doc_ids",
+          "ok": true,
+          "detail": [
+            "ISMS-POL-001",
+            "DPDP-POL-001",
+            "ISMS-REG-004"
+          ]
+        },
+        {
+          "name": "logo_present",
+          "ok": true,
+          "detail": "/app/poc/output/logo_saas.png"
+        },
+        {
+          "name": "docx:ISMS-POL-001_Information_Security_Policy",
+          "ok": true,
+          "detail": "opened OK, 50 paragraphs, 4 tables"
+        },
+        {
+          "name": "pdf:ISMS-POL-001_Information_Security_Policy",
+          "ok": true,
+          "detail": "valid PDF, 7687 bytes"
+        },
+        {
+          "name": "docx:DPDP-POL-001_Data_Protection_Governance_Policy",
+          "ok": true,
+          "detail": "opened OK, 22 paragraphs, 3 tables"
+        },
+        {
+          "name": "pdf:DPDP-POL-001_Data_Protection_Governance_Policy",
+          "ok": true,
+          "detail": "valid PDF, 7417 bytes"
+        },
+        {
+          "name": "xlsx:ISMS-REG-004_Risk_Register",
+          "ok": true,
+          "detail": "opened OK, sheet 'Risk Register', 6 rows x 8 cols"
+        },
+        {
+          "name": "zip_complete",
+          "ok": true,
+          "detail": "complete ZIP, 7 entries"
+        },
+        {
+          "name": "manifest_matches_outputs",
+          "ok": true,
+          "detail": "5 artifacts all present in ZIP"
+        }
+      ],
+      "documents": [
+        {
+          "doc_id": "ISMS-POL-001",
+          "title": "Information Security Policy",
+          "ok": true,
+          "errors": [],
+          "warnings": []
+        },
+        {
+          "doc_id": "DPDP-POL-001",
+          "title": "Data Protection Governance Policy",
+          "ok": true,
+          "errors": [],
+          "warnings": []
+        },
+        {
+          "doc_id": "ISMS-REG-004",
+          "title": "Information Security Risk Register",
+          "ok": true,
+          "errors": [],
+          "warnings": []
+        }
+      ],
+      "ok": true
+    },
+    {
+      "profile": "Healthcare",
+      "checks": [
+        {
+          "name": "validate:ISMS-POL-001",
+          "ok": true,
+          "detail": "no errors"
+        },
+        {
+          "name": "validate:DPDP-POL-001",
+          "ok": true,
+          "detail": "no errors"
+        },
+        {
+          "name": "validate:ISMS-REG-004",
+          "ok": true,
+          "detail": "no errors"
+        },
+        {
+          "name": "unique_doc_ids",
+          "ok": true,
+          "detail": [
+            "ISMS-POL-001",
+            "DPDP-POL-001",
+            "ISMS-REG-004"
+          ]
+        },
+        {
+          "name": "logo_present",
+          "ok": true,
+          "detail": "/app/poc/output/logo_health.png"
+        },
+        {
+          "name": "docx:ISMS-POL-001_Information_Security_Policy",
+          "ok": true,
+          "detail": "opened OK, 50 paragraphs, 4 tables"
+        },
+        {
+          "name": "pdf:ISMS-POL-001_Information_Security_Policy",
+          "ok": true,
+          "detail": "valid PDF, 7566 bytes"
+        },
+        {
+          "name": "docx:DPDP-POL-001_Data_Protection_Governance_Policy",
+          "ok": true,
+          "detail": "opened OK, 22 paragraphs, 3 tables"
+        },
+        {
+          "name": "pdf:DPDP-POL-001_Data_Protection_Governance_Policy",
+          "ok": true,
+          "detail": "valid PDF, 7243 bytes"
+        },
+        {
+          "name": "xlsx:ISMS-REG-004_Risk_Register",
+          "ok": true,
+          "detail": "opened OK, sheet 'Risk Register', 6 rows x 8 cols"
+        },
+        {
+          "name": "zip_complete",
+          "ok": true,
+          "detail": "complete ZIP, 7 entries"
+        },
+        {
+          "name": "manifest_matches_outputs",
+          "ok": true,
+          "detail": "5 artifacts all present in ZIP"
+        }
+      ],
+      "documents": [
+        {
+          "doc_id": "ISMS-POL-001",
+          "title": "Information Security Policy",
+          "ok": true,
+          "errors": [],
+          "warnings": []
+        },
+        {
+          "doc_id": "DPDP-POL-001",
+          "title": "Data Protection Governance Policy",
+          "ok": true,
+          "errors": [],
+          "warnings": []
+        },
+        {
+          "doc_id": "ISMS-REG-004",
+          "title": "Information Security Risk Register",
+          "ok": true,
+          "errors": [],
+          "warnings": []
+        }
+      ],
+      "ok": true
+    }
+  ]
+}

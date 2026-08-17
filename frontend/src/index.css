@@ -1,0 +1,76 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+
+  --background: 210 33% 98%;
+  --foreground: 222 47% 11%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+
+  --primary: 229 63% 18%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 34 78% 93%;
+  --secondary-foreground: 229 63% 18%;
+  --muted: 214 20% 94%;
+  --muted-foreground: 215 16% 40%;
+  --accent: 174 60% 95%;
+  --accent-foreground: 174 78% 22%;
+
+  --destructive: 0 72% 45%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 214 20% 90%;
+  --input: 214 20% 90%;
+  --ring: 174 78% 26%;
+  --radius: 0.75rem;
+
+  --teal: 174 78% 26%;
+  --sand: 34 78% 93%;
+
+  --success-bg: 152 55% 95%; --success-fg: 152 55% 22%; --success-border: 152 40% 84%;
+  --warning-bg: 43 96% 95%; --warning-fg: 30 90% 25%; --warning-border: 43 80% 85%;
+  --info-bg: 199 89% 96%; --info-fg: 199 89% 22%; --info-border: 199 70% 85%;
+  --danger-bg: 0 86% 96%; --danger-fg: 0 72% 35%; --danger-border: 0 70% 88%;
+}
+
+* { border-color: hsl(var(--border)); }
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, .font-display { font-family: var(--font-display); }
+.font-mono { font-family: var(--font-mono); }
+
+.hero-wash {
+  background:
+    radial-gradient(1200px 600px at 20% 10%, rgba(17,26,74,0.10), transparent 60%),
+    radial-gradient(900px 500px at 80% 0%, rgba(251,240,223,0.85), transparent 55%);
+}
+
+.card-shadow { box-shadow: 0 1px 0 rgba(17,26,74,0.06), 0 10px 30px rgba(17,26,74,0.06); }
+.card-shadow-hover { transition: box-shadow 0.2s ease, transform 0.2s ease; }
+.card-shadow-hover:hover { box-shadow: 0 12px 40px rgba(17,26,74,0.12); transform: translateY(-2px); }
+
+::selection { background: hsl(var(--teal) / 0.18); }
+
+/* scrollbar */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground) / 0.4); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

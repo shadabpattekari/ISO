@@ -1,0 +1,26 @@
+[
+  {
+    "content": "Phase 1 (POC): Core document-generation engine (DOCX/XLSX/PDF/ZIP + validation)",
+    "status": "completed"
+  },
+  {
+    "content": "Phase 2: Full backend (auth, tenant isolation, commerce, onboarding, verification, generation, downloads, additional requirements, dashboards, audit)",
+    "status": "completed"
+  },
+  {
+    "content": "Phase 2: 3 standards content packs (ISO 27001, DPDPA, ISO 9001)",
+    "status": "completed"
+  },
+  {
+    "content": "Phase 2: Full frontend (public + client + admin, PWA)",
+    "status": "completed"
+  },
+  {
+    "content": "Phase 2: End-to-end testing with testing_agent_v3 (backend 100%, frontend 95%+, tenant isolation PASSED)",
+    "status": "completed"
+  },
+  {
+    "content": "Phase 3 (future): Add ISO 42001 & 27701 content packs, notifications/email templates, deeper content per standard",
+    "status": "pending"
+  }
+]
